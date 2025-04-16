@@ -1,0 +1,57 @@
+%%writefile mapper1.py
+
+import sys
+
+for input_line in sys.stdin:
+    tokens = input_line.strip().split()
+    for token in tokens:
+        if len(token) > 4:
+            print(f"{token}\t1")
+%%writefile reducer1.py
+
+import sys
+
+previous_token = None
+total_count = 0
+
+for input_line in sys.stdin:
+    current_token, cnt = input_line.strip().split('\t')
+    cnt = int(cnt)
+    
+    if current_token == previous_token:
+        total_count += cnt
+    else:
+        if previous_token is not None:
+            print(f"{previous_token}\t{total_count}")
+        previous_token = current_token
+        total_count = cnt
+
+if previous_token is not None:
+    print(f"{previous_token}\t{total_count}")
+
+%%writefile mapper2.py
+
+import sys
+
+for input_line in sys.stdin:
+    date_and_url, visits = input_line.strip().split('\t')
+    print(f"{date_and_url}\t{visits}")
+
+%%writefile reducer2.py
+
+import sys
+from collections import defaultdict
+
+urls_by_date = defaultdict(list)
+
+for input_line in sys.stdin:
+    date_url_pair, visits = input_line.strip().split('\t')
+    visits = int(visits)
+    date_part, url_part = date_url_pair.split('+')
+    urls_by_date[date_part].append((url_part, visits))
+
+for day in urls_by_date:
+    top_entries = sorted(urls_by_date[day], key=lambda x: x[1], reverse=True)[:5]
+    for entry in top_entries:
+        print(f"{day}\t{entry[0]}\t{entry[1]}")
+
